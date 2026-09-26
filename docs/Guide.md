@@ -1,0 +1,320 @@
+# RAC++ COMPILER — USAGE GUIDE
+
+🇻🇳 [Tiếng Việt](Guide.vi.md) | 🌍 [中文](Guide.zh.md)
+
+---
+
+## 1. Comments
+* **Syntax:**
+  - `# <comment>`
+  - `/* <comment> */`
+
+```
+# Single-line comment
+/* 
+   Multi-line 
+   comment 
+*/
+```
+
+## 2. Variables & Registers
+* **Syntax:**
+  - `var <var> = <value>`
+  - `reg <reg> = <value>`
+  - `<reg> = <value>`
+  - `<var> = <value>`
+* **Call / Recall:**
+  - `<name_var>` (e.g., `a`, `b`, `c`, `var`)
+
+```
+var count = 10         # Declares count variable
+reg r1 = 0x5           # Initializes register r1
+r2 = 0xFF              # Directly assigns to r2
+count = 20             # Re-assigns variable count
+count                  # Recalls/evaluates count
+```
+
+## 3. Data Types & String Handling
+* **Syntax:**
+  - Integer / Hex / Sequences:
+    - `<int(hex)>` (e.g., `0x02`, `10`) or `hex <int(hex)>`
+    - Space-separated number sequences (e.g. `16 16`): by default treated as decimal bytes (`hex 10 10`).
+    - Base mode directives:
+      - `@using hex`: switches raw number sequence parsing to hexadecimal (so `16 16` compiles as `hex 16 16`).
+      - `@using dec`: switches raw number sequence parsing back to decimal.
+    - Binary byte sequences:
+      - `bin <bits...>` (e.g., `bin 1010` compiles as `0x0A`, `bin 1010 1100` compiles as `0x0A 0x0C`).
+  - Strings:
+    - `"<string>"` (use `~` to represent spaces, e.g., `"hello~world"`)
+    - `"<f-string>"` (e.g., `"hello {name}"`)
+    - `'<token string>'` (keeps structure intact for math engines)
+    - `str "<string>"` (compiles raw string)
+    - `str <var> "<var_string>"` (declares string variable)
+    - `str <var>` (recalls string variable value)
+  - Arrays / Lists:
+    - `[<item>; <item>; ...]` (inline)
+    - Multi-line block:
+      ```
+      [
+          <item>
+          <item>
+      ]
+      ```
+  - Memory Metrics:
+    - `pr_length` / `sizeof()` (size of current section)
+    - `sizeof(<section>)` (size of specified section)
+    - `dist.<section>` (byte distance between org and backup)
+    - `pr_org()` (origin address of the current section)
+    - `pr_org(<section>)` (origin address of the specified section)
+    - `pr_backup()` (backup address of the current section)
+    - `pr_backup(<section>)` (backup address of the specified section)
+
+```
+var ten = "World"
+"Xin~chào,~{ten}!"        # Interpolation with spaces: "Xin chào, World!"
+'sin( 9 0 )'              # Token string
+str greeting "Hi"         # String variable
+str greeting              # Compiles "Hi"
+16 16                     # Decimal byte sequence: compiles to hex 10 10
+@using hex
+16 16                     # Hex byte sequence: compiles to hex 16 16
+@using dec
+bin 1010 1100             # Binary byte sequence: compiles to 0x0a 0x0c
+[0x1; 0x2]                # Inline list
+[                         # Block list
+  0x3
+  0x4
+]
+var size = sizeof(main)
+var delta = dist.launcher
+```
+
+## 4. Aliases
+* **Syntax:**
+  - `<var/reg/gadget/label/...> as <new_name>`
+  - `@using <target> = <alias>` (RAC++ alias directive for expressions, functions, labels, etc.)
+  - `@section.<old_name> [at|org <addr_org> backup <addr_backup>] as <new_name>`
+  - `@set.<old_name> [at|org <addr_org> backup <addr_backup>] as <new_name>`
+
+```
+er0 as tmp
+tmp = 0x1200                             # Compiles to: er0 = 0x12
+
+# RAC++ @using alias directive:
+@using pr_org() = pro
+var origin = pro                         # pro is automatically replaced with pr_org()
+
+@section.init at 0x1000 backup 0x2000 as start
+```
+
+## 5. Labels & Jump
+* **Syntax:**
+  - Declaration:
+    - `lbl <label>`
+    - `<label>:`
+  - Address Retrieval:
+    - `adr(<label>)`
+    - `adr(<label>, <offset>)`
+    - `adr(<label>, <offset>, <base_addr>)`
+    - `adr(<label>)[<index>]` (get 1 byte at index: [0] = lower byte, [1] = upper byte)
+    - `adr($)` (gets the current address of this line)
+    - `adr_of <label>`
+    - `adr_of [<offset>] <label>`
+    - `adr_of [<offset>][<base_addr>] <label>`
+  - Jump:
+    - `goto <label>` (expands to: `er14 = adr(<label>, -2); sp = er14, pop er14`)
+
+```
+lbl start
+# or:
+start:
+  goto end
+
+lbl end
+  var addr1 = adr(start)
+  var addr2 = adr_of [-2][0x8000] end
+```
+
+## 6. Calls & Gadgets
+* **Syntax:**
+  - `call <address/function_name>`
+  - `def <gadget> : <address>` (defines gadget into command_dict)
+  - `def {<tag>} <name_gadget>: <address>`
+
+```
+def my_gadget : 0x17b34
+call my_gadget
+call 0x1234
+def {memcpy} memcpy_auto_jmp: 0x12345
+```
+
+## 7. Compound Statements
+* **Syntax:** `<statement1> ; <statement2> ; ...`
+
+```
+call 0x1234 ; goto end
+```
+
+## 8. Dynamic Macros
+* **Syntax:**
+  - Single-line: `def <macro_name>(<args>) => <single_line_expr>`
+  - Block form: `def <macro_name>(<args>) => { <block_of_code> }`
+
+```
+def add_hex(<val1>, <val2>) => eval(<val1> + <val2>)
+
+def my_macro(<addr>, <val>) => {
+    er0 = <addr>
+    er2 = <val>
+}
+```
+
+## 9. Functions
+* **Syntax:**
+  - Multi-line block:
+    ```
+    func <function>(<args>) {
+        <code>
+    }
+    ```
+  - Standalone call: `<function>(<args>)`
+  - Single-line return (can be assigned to variables/registers):
+    `func <function>(<args>) { return <expression> }`
+
+```
+func greet(person) {
+  "Hello,~{person}!"
+}
+greet("Alice")
+
+func add(x, y) { return x + y }
+r1 = add(5, 10)
+```
+
+## 10. Location & Alignment Directives
+* **Syntax:**
+  - `org <addr_org>` (sets mapping origin address; skip if using `@set` inline `at`)
+  - `backup <addr_backup>` (sets backup storage address)
+
+```
+org 0xe9e0
+backup 0xd000
+```
+
+## 11. Phased Memory Blocks (Sections)
+* **Syntax:**
+  - `@section.<section> [at|org <addr_org> backup <addr_backup>]`
+  - `@set.<section> [at|org <addr_org> backup <addr_backup>]`
+*(Note: RAC++ supports both `at` and `org` keywords for specifying the origin address).*
+
+```
+@set.main at 0xe9e0 backup 0xf000
+0x1234
+
+# Using org keyword in RAC++:
+@section.launcher org 0xd180 backup 0xd800
+r1 = 0x5
+```
+
+## 12. Build Configuration (`@build`)
+* **Syntax:**
+  - Block form:
+    ```
+    @build {
+        emu.inj = <true|false>
+        emu.inj_file = "<file_name>"
+        emu.inj_var = "<name_var>"
+        emu.inj_adr[<section>] = <address>
+        line.bytes = <count>
+        line.gadgets = <base_offset>
+        output.file = <true|false>
+        output.file_name = "<file_name>"
+    }
+    ```
+  - Inline form: `@build <key> = <value>; ...;`
+
+```
+@build {
+    emu.inj = true
+    emu.inj_file = "payload.txt"
+    emu.inj_var = "payload"
+    line.bytes = 16
+    line.gadgets = 0x30300000
+    output.file = true
+    output.file_name = "build_output.txt"
+}
+```
+
+## 13. Compile-Time Evaluation & Arithmetic
+* **Syntax:**
+  - **Implicit Evaluation (RAC++):** Expressions containing arithmetic operators (`+`, `-`, `*`, `/`, `%`), bitwise operators (`<<`, `>>`, `&`, `|`, `^`), address resolution, or functions are calculated directly without needing `eval(...)` or `calc(...)`!
+    - `<expr_arithmetic>` (e.g. `adr(hello) + 0x2`, `(count * 4) + 0x10`, `adr($) + 4`)
+  - Explicit Functions:
+    - `eval(<expression>)`
+    - `calc(<expression>)`
+  - Address Arithmetic:
+    - `adr_arith <label1> <+/-> adr_arith <label2> ...`
+    - `adr_arith [<offset1>] <label1> <+/-> adr_arith [<offset2>] <label2> ...`
+
+```
+# RAC++ Implicit Evaluation (no eval/calc needed):
+adr(hello) + 0x2                          # Directly evaluated and compiled as 2-byte word
+0x100 * 2 + 0x20                          # Arithmetic evaluated at compile time
+adr($) + 4                                # Current line address plus offset
+
+# Explicit evaluation:
+eval(0x1 + 0x2 * 0x3)                     # Evaluates to 0x7
+calc(adr(label1) - adr(label2))
+adr_arith start - adr_arith end
+adr_arith [+4] start - adr_arith [-2] end
+```
+
+## 14. Compile-Time Loops & Padding
+* **Loops:**
+  - `loop <range> { <code> }`
+  - `repeat <range> { <code> }`
+* **Padding:**
+  - `fill(<count>, [<value>])`: Fills `<count>` bytes with `<value>` (default 0).
+  - `align(<size>, [<value>])`: Pads bytes until the address is a multiple of `<size>`.
+  - `pad(<offset>, [<value>])`: Pads bytes until the section length reaches `<offset>`.
+  - `pad_abs(<address>, [<value>])`: Pads bytes until the absolute address reaches `<address>`.
+
+```
+loop 4 {
+  0x67
+}
+
+fill(16, 0xFF)
+align(4)
+pad(0x100, 0x00)
+```
+
+## 15. Embedded Python Scripting
+* **Syntax:** `@python { <python_code> }`
+* Allows executing Python code directly during compilation. Variables can be injected into the compiler environment (`loader.vars_dict`).
+
+```
+@python {
+    # Complex Python logic
+    loader.vars_dict["calculated_val"] = 0x1234 * 2
+}
+var my_val = calculated_val
+```
+
+## 16. Line Continuation & Multi-line
+* **Syntax:**
+  - Use `\` at the end of a line to continue a raw statement.
+  - Parentheses `()`, brackets `[]`, or braces `{}` automatically support multi-line without `\`.
+
+```
+hex 30 \
+31
+
+eval(
+    0x01 + 0x02
+)
+```
+
+---
+
+**Document Maintainer:** `luongvantam`
