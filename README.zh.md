@@ -48,19 +48,6 @@ chmod +x run.sh
      - `!m`: 更改目标型号。
      - `!u`: 检查更新。
 
-#### 4. 使用 IDE (新增)
-
-该项目现在包含 2 个集成开发环境 (IDE)：
-
-- **TUI IDE (终端用户界面):**
-  - 在 Windows 上运行 `IDE.bat` 或在 Linux/macOS 上运行 `./IDE.sh`。
-  - 直接在您的终端中提供语法高亮功能。
-  - 需要 `textual` Python 模块（通过脚本自动安装）。
-
-- **Web IDE (浏览器用户界面):**
-  - 在 Windows 上运行 `web.bat` 或在 Linux/macOS 上运行 `./web.sh`。
-  - 打开浏览器并导航到终端中显示的地址（通常是 `http://localhost:8000`）。
-
 ---
 
 **文档维护者:** `luongvantam`

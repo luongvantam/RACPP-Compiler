@@ -48,19 +48,6 @@ chmod +x run.sh
      - `!m`: Change the target model.
      - `!u`: Check for updates.
 
-#### 4. Using the IDE (New)
-
-The project now includes 2 Integrated Development Environments (IDEs):
-
-- **TUI IDE (Terminal UI):**
-  - Run `IDE.bat` on Windows or `./IDE.sh` on Linux/macOS.
-  - Features syntax highlighting directly in your terminal.
-  - Requires the `textual` Python module (installed automatically via scripts).
-
-- **Web IDE (Browser UI):**
-  - Run `web.bat` on Windows or `./web.sh` on Linux/macOS.
-  - Open your browser and navigate to the address shown in the terminal (usually `http://localhost:8000`).
-
 ---
 
 **Document Maintainer:** `luongvantam`

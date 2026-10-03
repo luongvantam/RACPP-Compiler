@@ -48,19 +48,6 @@ chmod +x run.sh
      - `!m`: Đổi sang model máy tính khác.
      - `!u`: Cập nhật (Update).
 
-#### 4. Sử dụng IDE (Mới)
-
-Dự án hiện có 2 môi trường phát triển tích hợp (IDE):
-
-- **TUI IDE (Giao diện Terminal):**
-  - Chạy `IDE.bat` trên Windows hoặc `./IDE.sh` trên Linux/macOS.
-  - Hỗ trợ tô màu cú pháp trực tiếp trên Terminal.
-  - Yêu cầu cài đặt module `textual` (tự động cài khi chạy script).
-
-- **Web IDE (Giao diện Trình duyệt):**
-  - Chạy `web.bat` trên Windows hoặc `./web.sh` trên Linux/macOS.
-  - Mở trình duyệt và truy cập địa chỉ hiển thị trong terminal (thường là `http://localhost:8000`).
-
 ---
 
 **Người bảo trì tài liệu:** `luongvantam`
