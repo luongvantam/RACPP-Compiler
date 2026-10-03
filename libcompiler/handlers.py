@@ -893,7 +893,9 @@ def handle_assignment_command(line, program_iter):
         process_line(f'call pop {reg}')
         l1 = len(loader.result)
         process_line("".join(new_right))
-        if len(loader.result) - l1 != sizeof_register(reg): raise utils.CompilerError(t("err_line_var0_sourcedest_target_b481", var0=line))
+        result_size = len(loader.result) - l1
+        if result_size != sizeof_register(reg) and not (reg.startswith('r') and result_size == 1):
+            raise utils.CompilerError(t("err_line_var0_sourcedest_target_b481", var0=line))
     elif l.startswith("lbl "):
         process_line(l)
         process_line(r)

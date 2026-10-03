@@ -34,6 +34,8 @@ count = 20             # Re-assigns variable count
 count                  # Recalls/evaluates count
 ```
 
+Assignments to `r` registers accept 1- or 2-byte values.
+
 ## 3. Data Types & String Handling
 * **Syntax:**
   - Integer / Hex / Sequences:

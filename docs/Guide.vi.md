@@ -34,6 +34,8 @@ count = 20             # Gán lại giá trị cho biến count
 count                  # Gọi/đánh giá biến count
 ```
 
+Phép gán vào thanh ghi `r` chấp nhận giá trị có kích thước 1 hoặc 2 byte.
+
 ## 3. Kiểu dữ liệu & Chuỗi ký tự (Data Types & Strings)
 * **Cú pháp:**
   - Số nguyên / Hex / Chuỗi byte số:
