@@ -3,7 +3,7 @@
     * Binary Digit Classifier (0 vs 1)
     * Accuracy: ~70–85%
     * Created by luongvantam
-    * Use https://github.com/luongvantam/RAC-Compiler/ to compile this program.
+    * Use https://github.com/luongvantam/RACPP-Compiler/ to compile this program.
 */
 
 @build {
