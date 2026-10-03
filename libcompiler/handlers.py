@@ -478,6 +478,12 @@ def handle_repeat_command(line, program_iter):
             raise utils.CompilerError(t("err_repeat_items_too_large_1234", var0=len(loader.result) - initial_len, var1=1000))
 
 
+def expand_label_shorthand(expr):
+    parts = re.split(r'("(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')', expr)
+    for i in range(0, len(parts), 2):
+        parts[i] = re.sub(r'\$([a-zA-Z_]\w*)', r'adr("\1")', parts[i])
+    return ''.join(parts)
+
 def handle_eval_expression(line):
     if (line.startswith('eval(') or line.startswith('calc(')) and line.endswith(')'):
         expr = line[5:-1].strip()
@@ -490,6 +496,7 @@ def handle_eval_expression(line):
         pat = re.compile(r'\b(' + '|'.join(re.escape(k) for k in loader.vars_dict) + r')\b')
         expanded_expr = pat.sub(lambda m: str(loader.vars_dict[m.group(1)]), expanded_expr)
 
+    expanded_expr = expand_label_shorthand(expanded_expr)
     expanded_expr = re.sub(r'\bdist\.(\w+)\b', r'dist("\1")', expanded_expr)
     expanded_expr = re.sub(r'\bsizeof\((.*?)\)', lambda m: f'sizeof("{m.group(1).strip()}")' if m.group(1).strip() else 'sizeof()', expanded_expr)
     expanded_expr = re.sub(r'\bpr_org\((.*?)\)', lambda m: f'pr_org("{m.group(1).strip()}")' if m.group(1).strip() else 'pr_org()', expanded_expr)
@@ -719,6 +726,9 @@ def is_eval_expression(expr_str):
     expr_str = expr_str.strip()
     if not expr_str:
         return False
+    expr_str = expand_label_shorthand(expr_str)
+    if re.fullmatch(r'adr\("[a-zA-Z_]\w*"\)', expr_str):
+        return True
     if re.match(r'^\s*\d+[\s,]+\d+', expr_str):
         return False
     has_operator = bool(re.search(r'[\+\-\*\/\%\&\|\^\~\<\>]', expr_str))
@@ -1065,6 +1075,8 @@ def dispatch_command_handler(line, program_iter=None, defined_functions=None):
         else:
             handle_eval_expression(ls)
     elif ls.startswith('('):
+        handle_eval_expression(ls)
+    elif re.fullmatch(r'\$[a-zA-Z_]\w*', ls):
         handle_eval_expression(ls)
     elif is_number_sequence(ls):
         handle_number_sequence(ls)

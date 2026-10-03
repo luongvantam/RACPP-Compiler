@@ -5,9 +5,9 @@ lbl cursor_no_flash
     [er0]=r2              # store 0x1 to addr 0xd113
     
 lbl setupkey
-    er0 = adr(key)
+    er0 = $key
     getscancode
-    xr12=adr(table),adr(table)
+    xr12=$table,$table
     setlr
     call 17CA6
     pop er0
@@ -18,14 +18,14 @@ lbl setupkey
     sp = er6, pop er8
 
 lbl key_1_func
-    xr0 = hex 21 30, adr(text1)
+    xr0 = hex 21 30, $text1
     printline 
     render.ddd4
-    er14=eval(adr(restore)-0x2)
+    er14=$restore-0x2
     sp=er14, pop er14
 
 lbl key_2_func
-    xr0 = hex 21 30, adr(text2)
+    xr0 = hex 21 30, $text2
     printline
     render.ddd4
 
@@ -46,11 +46,11 @@ lbl text2
 lbl table
     hex 00 00 00 00 00 00 00 00 00 00
     KEY_1                       # if key = KEY_1
-    eval(adr(key_1_func)-0x2)
+    $key_1_func-0x2
     KEY_2                       # if key = KEY_2
-    eval(adr(key_2_func)-0x2)
+    $key_2_func-0x2
     hex 00 00                   # else
-    eval(adr(restore)-0x2)
+    $restore-0x2
 
 
 @section.launcher at 0xd180
